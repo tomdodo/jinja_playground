@@ -1,0 +1,45 @@
+<div>
+    Hello, World!
+    <div>Learner Contact:
+        <ul>
+            <li>ID: {{ learner_contact.id }}</li>
+            <li>Date of Birth: {{ learner_contact.date_of_birth_as_string }}</li>
+        </ul>
+    </div>
+    <hr>
+    <ul>
+        {% for learner in registration.learners %}
+            <li>Learner ID: {{ learner.id }}</li>
+            <ul>
+                <li>
+                    Event ID: {{ learner.event.id }}
+                </li>
+                <li>
+                    Contact ID: {{ learner.contact.id }}
+                </li>
+                <li>Event start: {{ learner.event.start }}</li>
+                <li>
+                    Contact DoB:
+                        {{ learner.contact.date_of_birth_as_string | to_date }}
+                </li>
+                <li>
+                    Contact age at event start:
+                    {{ (learner.event.start - learner.contact.date_of_birth_as_string | to_date) | timedelta_to_years }}
+                </li>
+            </ul>
+        {% endfor %}
+    </ul>
+<hr>
+Should I include the underage info? Test below:<br>
+The idea is that - IF at least one event in the registration is such that the contact is under 18 at the
+event start date, then we should include the <code>Disability Info!</code> block <strong>only once</strong>
+(no matter how many events we have that meet those conditions)
+
+{% for learner in registration.learners
+   if learner.contact.id == learner_contact.id
+     and ((learner.event.start - learner.contact.date_of_birth_as_string | to_date) | timedelta_to_years) < 18 %}
+    {% if loop.first %}
+        <p> Disability info! </p>
+    {% endif %}
+{% endfor %}
+</div>
