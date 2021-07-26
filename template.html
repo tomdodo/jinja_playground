@@ -20,11 +20,11 @@
                 <li>Event start: {{ learner.event.start }}</li>
                 <li>
                     Contact DoB:
-                        {{ learner.contact.date_of_birth_as_string | to_date }}
+                        {{ learner.contact.date_of_birth_as_string }}
                 </li>
                 <li>
                     Contact age at event start:
-                    {{ (learner.event.start - learner.contact.date_of_birth_as_string | to_date) | timedelta_to_years }}
+                    {{ learner.event.start | date_diff(learner.contact.date_of_birth_as_string) | timedelta('years') }}
                 </li>
             </ul>
         {% endfor %}
@@ -37,7 +37,7 @@ event start date, then we should include the <code>Disability Info!</code> block
 
 {% for learner in registration.learners
    if learner.contact.id == learner_contact.id
-     and ((learner.event.start - learner.contact.date_of_birth_as_string | to_date) | timedelta_to_years) < 18 %}
+     and ( learner.event.start | date_diff(learner.contact.date_of_birth_as_string) | timedelta('years')) < 18 %}
     {% if loop.first %}
         <p> Disability info! </p>
     {% endif %}

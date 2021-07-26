@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import Union, Literal
 
 from flask import Flask
 from jinja2 import StrictUndefined
@@ -33,14 +34,23 @@ class Registration(object):
         self.learners = learners
 
 
-def parse_date_filter(value: str):
+def ensure_date(value: Union[str, datetime]):
+    if isinstance(value, datetime):
+        return value
     return datetime.strptime(value, "%Y-%m-%d")
 
 
-def timedelta_to_years(value: timedelta):
-    # average days in a year will do for now, python-dateutil will
-    # provide a more accurate count that takes into account leap years etc
-    return value.days / AVG_DAYS_IN_A_YEAR
+def date_diff(value_1, value_2):
+    return ensure_date(value_1) - ensure_date(value_2)
+
+
+def timedelta_to_unit(value: timedelta, unit: Union[Literal['days'], Literal['years']]) -> float:
+    if unit == 'days':
+        return value.days
+    if unit == 'years':
+        # python-dateutil provides more accurate count (leap years etc), this will do for now
+        return value.days / AVG_DAYS_IN_A_YEAR
+    raise NotImplementedError(f"Unit '${unit}' unsupported for timedelta filter")
 
 
 def render(**kwargs):
@@ -48,8 +58,8 @@ def render(**kwargs):
         contents = f.read()
     environment = SandboxedEnvironment(undefined=StrictUndefined)
     environment.filters.update({
-        "to_date": parse_date_filter,
-        "timedelta_to_years": timedelta_to_years
+        "date_diff": date_diff,
+        "timedelta": timedelta_to_unit
     })
     return environment.from_string(contents).render(**kwargs)
 
